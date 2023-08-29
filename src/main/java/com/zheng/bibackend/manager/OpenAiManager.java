@@ -24,7 +24,7 @@ public class OpenAiManager {
 //    map.put("My data:", "Header: date, user_number\n08/01/2023,10\n08/02/2023,20\n08/03/2023");
 //    String jsonData = JSONUtil.toJsonStr(map);
 //    String result = HttpRequest.post(url)
-//        .header("Authorization", "Bearer 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")
+//        .header("Authorization", "Bearer your_key")
 //        .body(jsonData)
 //        .execute()
 //        .body();
