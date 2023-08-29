@@ -35,7 +35,7 @@ public class OpenAiManager {
   public String genResultByOpenAi(String jsonData) {
     String url = "https://api.openai.com/v1/completions";
     String response = HttpRequest.post(url)
-        .header("Authorization", "Bearer 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")
+        .header("Authorization", "Bearer your_key")
         .body(jsonData)
         .execute()
         .body();
