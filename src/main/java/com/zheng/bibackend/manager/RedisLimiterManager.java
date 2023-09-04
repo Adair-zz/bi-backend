@@ -23,15 +23,15 @@ public class RedisLimiterManager {
   private RedissonClient redissonClient;
   
   /**
-   * 限流操作
+   * rate limit.
    *
-   * @param key 区分不同的限流器，比如不同的用户 id 应该分别统计
+   * @param key rate limiter id, which is associated with user id
    */
   public void doRateLimit(String key) {
-    // 创建一个名称为user_limiter的限流器，每秒最多访问 2 次
+    // allow 1 request in 15 seconds
     RRateLimiter rateLimiter = redissonClient.getRateLimiter(key);
-    rateLimiter.trySetRate(RateType.OVERALL, 2, 1, RateIntervalUnit.SECONDS);
-    // 每当一个操作来了后，请求一个令牌
+    rateLimiter.trySetRate(RateType.OVERALL, 1, 15, RateIntervalUnit.SECONDS);
+
     boolean canOp = rateLimiter.tryAcquire(1);
     if (!canOp) {
       throw new BusinessException(ErrorCode.TOO_MANY_REQUEST);

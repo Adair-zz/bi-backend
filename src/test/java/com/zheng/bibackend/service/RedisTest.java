@@ -1,5 +1,6 @@
 package com.zheng.bibackend.service;
 
+import com.zheng.bibackend.model.entity.Chart;
 import com.zheng.bibackend.model.entity.User;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Assertions;
@@ -8,6 +9,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 /**
  * @Author: Zheng Zhang
  * @Description
@@ -15,6 +19,12 @@ import org.springframework.data.redis.core.ValueOperations;
  */
 @SpringBootTest
 public class RedisTest {
+  
+  @Resource
+  private UserService userService;
+  
+  @Resource
+  private ChartService chartService;
   
   @Resource
   private RedisTemplate redisTemplate;
@@ -39,4 +49,13 @@ public class RedisTest {
     Assertions.assertTrue("happy".equals((String) testString));
     System.out.println(valueOperations.get("testUser"));
   }
+  
+  @Test
+  void redisCustomizedTemplateMemorySave() {
+    User user = userService.getById("1691200092494454786");
+  
+    ValueOperations valueOperations = redisTemplate.opsForValue();
+    valueOperations.set("testUserMemory", user);
+  }
+  
 }

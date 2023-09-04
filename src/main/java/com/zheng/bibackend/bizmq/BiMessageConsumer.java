@@ -65,41 +65,32 @@ public class BiMessageConsumer {
       }
       handleChartUpdateError(chart.getId(), "Fail to update chart type to running");
     }
-
-//            // user input for ai
-//            Map<String, String> dataMap = new HashMap<>();
-//            dataMap.put("model", "gpt-3.5-turbo");
-//            String userGoal = goal;
-//            if (StringUtils.isNotBlank(chartType)) {
-//                userGoal += "Please use" + chartType;
-//            }
-//            dataMap.put("message", userGoal);
-//            dataMap.put("Raw Data:", csvData);
-//            String resultByAi = openAiApi.genResultByOpenAi(JSONUtil.toJsonStr(dataMap));
+    
   
-  
+    String resultByAi = openAiManager.genResultByOpenAi(chart.getGoal(), chart.getChartType(), chart.getChartData());
+    
     // Suppose we have got the result from ai
-    String resultByAi = "{\n" +
-        "  \"xAxis\": {\n" +
-        "    \"type\": \"category\",\n" +
-        "    \"data\": [\"08/01/2023\", \"08/02/2023\", \"08/03/2023\"]\n" +
-        "  },\n" +
-        "  \"yAxis\": {\n" +
-        "    \"type\": \"value\"\n" +
-        "  },\n" +
-        "  \"series\": [\n" +
-        "    {\n" +
-        "      \"type\": \"bar\",\n" +
-        "      \"data\": [10, 20, 30]\n" +
-        "    }\n" +
-        "  ]\n" +
-        "}\n" +
-        "=====\n" +
-        "Based on the data provided, we can observe a clear trend in the user numbers over the specified dates. The bar chart illustrates the growth in user numbers, with each bar representing a date.\n" +
-        "\n" +
-        "On August 1st, 2023, there were 10 users. This number increased to 20 users on August 2nd, 2023, and further rose to 30 users on August 3rd, 2023. The consistent increase in user numbers suggests a positive growth trend during this period.\n" +
-        "\n" +
-        "This data can be valuable for assessing the performance and popularity of the platform during these dates. It's recommended to continue monitoring user numbers and identifying factors that contribute to such growth. Further analysis could involve investigating any external events or marketing efforts that might have influenced these increases in user engagement.";
+//    String resultByAi = "{\n" +
+//        "  \"xAxis\": {\n" +
+//        "    \"type\": \"category\",\n" +
+//        "    \"data\": [\"08/01/2023\", \"08/02/2023\", \"08/03/2023\"]\n" +
+//        "  },\n" +
+//        "  \"yAxis\": {\n" +
+//        "    \"type\": \"value\"\n" +
+//        "  },\n" +
+//        "  \"series\": [\n" +
+//        "    {\n" +
+//        "      \"type\": \"bar\",\n" +
+//        "      \"data\": [10, 20, 30]\n" +
+//        "    }\n" +
+//        "  ]\n" +
+//        "}\n" +
+//        "=====\n" +
+//        "Based on the data provided, we can observe a clear trend in the user numbers over the specified dates. The bar chart illustrates the growth in user numbers, with each bar representing a date.\n" +
+//        "\n" +
+//        "On August 1st, 2023, there were 10 users. This number increased to 20 users on August 2nd, 2023, and further rose to 30 users on August 3rd, 2023. The consistent increase in user numbers suggests a positive growth trend during this period.\n" +
+//        "\n" +
+//        "This data can be valuable for assessing the performance and popularity of the platform during these dates. It's recommended to continue monitoring user numbers and identifying factors that contribute to such growth. Further analysis could involve investigating any external events or marketing efforts that might have influenced these increases in user engagement.";
   
     String[] strSplits = resultByAi.split("=====");
     if (strSplits.length < 2) {

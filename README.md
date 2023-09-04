@@ -35,7 +35,7 @@ This strategic deployment of message queues serves as a formidable optimization 
 
 In essence, the utilization of message queues elevates the operational efficiency and user experience of our AI service. It effectively mitigates latency concerns, rendering our service scalable and resilient in the face of substantial user demand.
 
-![new flowchart](new flowchart.png)
+![new flowchart](flowchart1.png)
 
 `Optimization process (asynchronous)`: The client inputs analysis goal and raw data, and sends requests to the backend. The backend puts the request event into the message queue, and generates a pick-up number for the client, so that the client who wants to generate the chart goes to the queue. The message queue checks the progress regularly according to the load of the AI service. If the AI service can handle more, then send a message to the Message Process module.
 

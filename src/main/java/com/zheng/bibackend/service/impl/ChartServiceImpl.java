@@ -6,6 +6,7 @@ import com.zheng.bibackend.model.entity.Chart;
 import com.zheng.bibackend.service.ChartService;
 import org.springframework.stereotype.Service;
 
+
 /**
 * @author Zheng Zhang
 * @description 针对表【chart(chart)】的数据库操作Service实现
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ChartServiceImpl extends ServiceImpl<ChartMapper, Chart>
     implements ChartService {
-
+  
 }
 
 

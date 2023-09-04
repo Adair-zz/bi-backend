@@ -1,6 +1,7 @@
 package com.zheng.bibackend.controller;
 
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
@@ -30,6 +31,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,6 +41,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Chart API.
@@ -57,6 +61,9 @@ public class ChartController {
     
     @Resource
     private OpenAiManager openAiManager;
+    
+    @Resource
+    private RedisTemplate redisTemplate;
     
     @Resource
     private RedisLimiterManager redisLimiterManager;
@@ -358,41 +365,31 @@ public class ChartController {
             if (!isStatusUpdated) {
                 handleChartUpdateError(chart.getId(), "Fail to update chart type to running");
             }
-            
-//            // user input for ai
-//            Map<String, String> dataMap = new HashMap<>();
-//            dataMap.put("model", "gpt-3.5-turbo");
-//            String userGoal = goal;
-//            if (StringUtils.isNotBlank(chartType)) {
-//                userGoal += "Please use" + chartType;
-//            }
-//            dataMap.put("message", userGoal);
-//            dataMap.put("Raw Data:", csvData);
-//            String resultByAi = openAiApi.genResultByOpenAi(JSONUtil.toJsonStr(dataMap));
     
+            String resultByAi = openAiManager.genResultByOpenAi(goal, chartType, csvData);
     
             // Suppose we have got the result from ai
-            String resultByAi = "{\n" +
-                "  \"xAxis\": {\n" +
-                "    \"type\": \"category\",\n" +
-                "    \"data\": [\"08/01/2023\", \"08/02/2023\", \"08/03/2023\"]\n" +
-                "  },\n" +
-                "  \"yAxis\": {\n" +
-                "    \"type\": \"value\"\n" +
-                "  },\n" +
-                "  \"series\": [\n" +
-                "    {\n" +
-                "      \"type\": \"bar\",\n" +
-                "      \"data\": [10, 20, 30]\n" +
-                "    }\n" +
-                "  ]\n" +
-                "}\n" +
-                "=====\n" +
-                "Based on the data provided, we can observe a clear trend in the user numbers over the specified dates. The bar chart illustrates the growth in user numbers, with each bar representing a date.\n" +
-                "\n" +
-                "On August 1st, 2023, there were 10 users. This number increased to 20 users on August 2nd, 2023, and further rose to 30 users on August 3rd, 2023. The consistent increase in user numbers suggests a positive growth trend during this period.\n" +
-                "\n" +
-                "This data can be valuable for assessing the performance and popularity of the platform during these dates. It's recommended to continue monitoring user numbers and identifying factors that contribute to such growth. Further analysis could involve investigating any external events or marketing efforts that might have influenced these increases in user engagement.";
+//            String resultByAi = "{\n" +
+//                "  \"xAxis\": {\n" +
+//                "    \"type\": \"category\",\n" +
+//                "    \"data\": [\"08/01/2023\", \"08/02/2023\", \"08/03/2023\"]\n" +
+//                "  },\n" +
+//                "  \"yAxis\": {\n" +
+//                "    \"type\": \"value\"\n" +
+//                "  },\n" +
+//                "  \"series\": [\n" +
+//                "    {\n" +
+//                "      \"type\": \"bar\",\n" +
+//                "      \"data\": [10, 20, 30]\n" +
+//                "    }\n" +
+//                "  ]\n" +
+//                "}\n" +
+//                "=====\n" +
+//                "Based on the data provided, we can observe a clear trend in the user numbers over the specified dates. The bar chart illustrates the growth in user numbers, with each bar representing a date.\n" +
+//                "\n" +
+//                "On August 1st, 2023, there were 10 users. This number increased to 20 users on August 2nd, 2023, and further rose to 30 users on August 3rd, 2023. The consistent increase in user numbers suggests a positive growth trend during this period.\n" +
+//                "\n" +
+//                "This data can be valuable for assessing the performance and popularity of the platform during these dates. It's recommended to continue monitoring user numbers and identifying factors that contribute to such growth. Further analysis could involve investigating any external events or marketing efforts that might have influenced these increases in user engagement.";
     
             String[] strSplits = resultByAi.split("=====");
             if (strSplits.length < 2) {
@@ -464,42 +461,33 @@ public class ChartController {
         redisLimiterManager.doRateLimit("genChartByAi_" + loginUser.getId());
         
         String csvData = ExcelUtils.excelToCsv(multipartFile);
+        
+        String resultByAi = openAiManager.genResultByOpenAi(goal, chartType, csvData);
+    
+    
+        // Suppose we have got the result from AI
+//        String resultByAi = "{\n" +
+//            "  \"xAxis\": {\n" +
+//            "    \"type\": \"category\",\n" +
+//            "    \"data\": [\"08/01/2023\", \"08/02/2023\", \"08/03/2023\"]\n" +
+//            "  },\n" +
+//            "  \"yAxis\": {\n" +
+//            "    \"type\": \"value\"\n" +
+//            "  },\n" +
+//            "  \"series\": [\n" +
+//            "    {\n" +
+//            "      \"type\": \"bar\",\n" +
+//            "      \"data\": [10, 20, 30]\n" +
+//            "    }\n" +
+//            "  ]\n" +
+//            "}\n" +
+//            "=====\n" +
+//            "Based on the data provided, we can observe a clear trend in the user numbers over the specified dates. The bar chart illustrates the growth in user numbers, with each bar representing a date.\n" +
+//            "\n" +
+//            "On August 1st, 2023, there were 10 users. This number increased to 20 users on August 2nd, 2023, and further rose to 30 users on August 3rd, 2023. The consistent increase in user numbers suggests a positive growth trend during this period.\n" +
+//            "\n" +
+//            "This data can be valuable for assessing the performance and popularity of the platform during these dates. It's recommended to continue monitoring user numbers and identifying factors that contribute to such growth. Further analysis could involve investigating any external events or marketing efforts that might have influenced these increases in user engagement.";
 
-//            // user input for AI
-//            Map<String, String> dataMap = new HashMap<>();
-//            dataMap.put("model", "gpt-3.5-turbo");
-//            String userGoal = goal;
-//            if (StringUtils.isNotBlank(chartType)) {
-//                userGoal += "Please use" + chartType;
-//            }
-//            dataMap.put("message", userGoal);
-//            dataMap.put("Raw Data:", csvData);
-//            String resultByAi = openAiApi.genResultByOpenAi(JSONUtil.toJsonStr(dataMap));
-    
-    
-        // Suppose we have got the result from ai
-        String resultByAi = "{\n" +
-            "  \"xAxis\": {\n" +
-            "    \"type\": \"category\",\n" +
-            "    \"data\": [\"08/01/2023\", \"08/02/2023\", \"08/03/2023\"]\n" +
-            "  },\n" +
-            "  \"yAxis\": {\n" +
-            "    \"type\": \"value\"\n" +
-            "  },\n" +
-            "  \"series\": [\n" +
-            "    {\n" +
-            "      \"type\": \"bar\",\n" +
-            "      \"data\": [10, 20, 30]\n" +
-            "    }\n" +
-            "  ]\n" +
-            "}\n" +
-            "=====\n" +
-            "Based on the data provided, we can observe a clear trend in the user numbers over the specified dates. The bar chart illustrates the growth in user numbers, with each bar representing a date.\n" +
-            "\n" +
-            "On August 1st, 2023, there were 10 users. This number increased to 20 users on August 2nd, 2023, and further rose to 30 users on August 3rd, 2023. The consistent increase in user numbers suggests a positive growth trend during this period.\n" +
-            "\n" +
-            "This data can be valuable for assessing the performance and popularity of the platform during these dates. It's recommended to continue monitoring user numbers and identifying factors that contribute to such growth. Further analysis could involve investigating any external events or marketing efforts that might have influenced these increases in user engagement.";
-    
         String[] strSplits = resultByAi.split("=====");
         if (strSplits.length < 2) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR);
@@ -522,5 +510,36 @@ public class ChartController {
         
         BiResponse biResponse = new BiResponse(genChart, genResult, chart.getId());
         return ResultUtils.success(biResponse);
+    }
+    
+    @GetMapping("/list/recommend")
+    public BaseResponse<Page<Chart>> getRecommendedCharts(HttpServletRequest httpServletRequest) {
+        User loginUser = userService.getLoginUser(httpServletRequest);
+        String redisKey = String.format("zheng:user:chart:recommend:%s", loginUser.getId());
+        ValueOperations valueOperations = redisTemplate.opsForValue();
+        Page<Chart> chartList = (Page<Chart>) valueOperations.get(redisKey);
+        if (chartList != null) {
+            return ResultUtils.success(chartList);
+        }
+    
+        QueryWrapper<Chart> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userId", loginUser.getId())
+            .isNotNull("genChart")
+            .isNotNull("genResult")
+            .ne("genChart", "")
+            .ne("genResult", "")
+            .eq("status", "success");
+        chartList = chartService.page(new Page<>(1, 20), queryWrapper);
+        try {
+            valueOperations.set(redisKey, chartList, 300000, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            log.error("redis set key error", e);
+        }
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return ResultUtils.success(chartList);
     }
 }
