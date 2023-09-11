@@ -8,7 +8,8 @@ One standout feature of our AIGC BI System is the ability to asynchronously gene
 
 In addition to this, our system excels at delivering insightful analysis conclusions, sparing data analysts the need to manually interpret data patterns. All these elements combined make our AIGC BI System a game-changer in the world of data analysis and visualization.
 
-
+## Demo Video
+[Demo Video(no sound)](https://drive.google.com/file/d/1O0X_I1tGlFb-3PBwuObE2stuJk8LYVS4/view?usp=drive_link)
 
 ## Requirement Analysis
 
